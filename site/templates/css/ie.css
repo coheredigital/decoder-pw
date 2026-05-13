@@ -1,0 +1,21 @@
+.sidebar h2:after{
+	display: none!important;
+}
+.episode-date{
+	width: auto!important;
+}
+
+.sidebar h2{
+	margin-right: -1px;
+}
+
+.main article header h2 a, .main article header .end, article.featured footer{
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#c20303', endColorstr='#960303',GradientType=0 ); /* IE6-9 */
+}
+
+.main article.showcase header h2 a, .main article.showcase header .end, article.showcase.featured footer{
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ac16cf', endColorstr='#8d11a3',GradientType=0 ); /* IE6-9 */
+}
+.main article.black-jack-justice header h2 a, .main article.black-jack-justice header .end, article.black-jack-justice.featured footer{
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0fa82a', endColorstr='#0b7a16',GradientType=0 ); /* IE6-9 */
+}
