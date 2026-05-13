@@ -1,0 +1,226 @@
+<?php
+class ProcessImportEpisodes extends Process {
+
+    static public function getModuleInfo() {
+        return array(
+            'title' => 'Import Episodes',
+            'summary' => '',
+            'version' => 100,
+            'singular' => true,
+            'autoload' => true
+        );
+    }
+
+
+	public function init() {
+        if ($this->input->get->import == 1) {
+             $this->addHookBefore('ProcessPageView::execute', $this, 'importEpisode');
+        }
+        $this->addHookAfter("ProcessPageListRender::getPageActions", $this, 'hookPageListActions');
+	}
+
+    public function hookPageListActions(HookEvent $event) {
+        $page = $event->arguments[0];
+
+        if($page->template == 'show') {
+            $actions = $event->return;
+
+            $actions[] = array(
+                'cn' => 'import',
+                'name' => 'import',
+                'url' => $this->config->urls->admin . "page/?import=1&importshow={$page->name}&open={$page->id}"
+                );
+
+
+            $event->return = $actions;
+        }
+    }
+
+    public function importEpisode($event) {
+
+
+        function drt_name($string){
+            if (strpos($string,'-') !== false){
+                $string = substr(strrchr($string, '-'), 1 );
+                $string = trim($string);
+            }
+            if (strpos($string,')') !== false){
+                $string = substr(strrchr($string, ')'), 1 );
+                $string = trim($string);
+            }
+            else{
+                $string = $string;
+            }
+            return $string;
+        }
+        function episodenumber($string){
+            preg_match("/[0-9]{2}/",$string,$result);
+            return $result[0];
+        }
+
+
+        function mrclean($string){
+            $string = str_replace('&nbsp;', ' ', $string);
+            $string = strip_tags($string, '<p><a><strong><em>');;
+            $string = preg_replace('#<p[^>]*>(\s|&nbsp;?)*</p>#', '', $string);
+            $string = stripcslashes($string);
+            return $string;
+        }
+
+        function resolveimage($string){
+            $url = $string;
+            $location = get_headers($url, 1);
+            if (array_key_exists('Location', $location))
+            {
+                $image = $location['Location'];
+            }
+            return $image;
+        }
+
+        function seasonnumber($string){
+            preg_match("/[0-9]{2}/", $string, $result);
+            $number = $result[0];
+            $season = '';
+            if ( stripos($string, 'Red Panda Adventures') !== false || stripos($string, 'Black Jack Justice') !== false || stripos($string, 'Showcase') !== false){
+                $season = floor($number / 12);
+                $mod = ($number % 12);
+                if ($mod > 0){
+                    $season++;
+                }
+            }
+            else $season = '';
+            return $season;
+        }
+
+        if ($this->input->get->importshow == 'red-panda-adventures') {
+            $blog_url = 'http://decoderring.libsyn.com/rss/category/Red+Panda+Adventures';
+            $show = "Red Panda Advetures";
+        }
+        elseif($this->input->get->importshow == 'black-jack-justice'){
+            $blog_url = 'http://decoderring.libsyn.com/rss/category/Black+Jack+Justice';
+            $show = "Black Jack Justice";
+        }
+        else{
+            $blog_url = 'http://decoderring.libsyn.com/rss/category/Showcase';
+            $show = "Showcase";
+        }
+
+        $newPages = 0;
+
+        $rawFeed = file_get_contents($blog_url);
+
+        $xml = new SimpleXmlElement($rawFeed);
+        $ns = array(
+            'media' => 'http://search.yahoo.com/mrss/',
+        );
+
+        $c = 0;
+
+        foreach ($xml->channel->item as $item) if($c < 1){
+            $c++;
+
+            $title = wire("sanitizer")->text(drt_name($item->title));
+            $name = wire("sanitizer")->pageName($title, true);
+
+            $episode_number = wire("sanitizer")->text(episodenumber($item->title));
+            $season_number = wire("sanitizer")->text(seasonnumber($item->title));
+
+            $parent = wire("pages")->get('parent=/shows/, name='.wire("input")->get->importshow);
+            $p = wire("pages")->get("name={$name}, include=all");
+
+
+
+            if(!$p->id) {
+                $newPages++;
+
+                $p = new Page();
+                $p->parent = $parent;
+                $p->template = 'episode'; // template new pages should use
+                $p->name = $name;
+
+                $p->of(false);
+
+                $p->title = $title;
+                $p->date = $item->pubDate;
+
+                $media = $item->children($ns['media']);
+                $thumbnail = $media->thumbnail->attributes();
+
+                $p->body = mrclean($item->description);
+
+                $mp3 = $item->enclosure->attributes();
+                $p->link_mp3 = $mp3['url'];
+
+                
+
+                if($p->parent->name == 'showcase') {
+
+                    // $season_number = intval(date('Y', strtotime($item->pubDate)))-2004;
+                    // $season = wire("pages")->get("parent=/data/seasons/,name=".$season_number);
+
+                    // if(!$season->id) {
+                    //     $pnew = new Page();
+                    //     $pnew->parent = '/data/seasons/';
+                    //     $pnew->template = 'data_entry';
+                    //     $pnew->name = wire("sanitizer")->name(date('Y', strtotime($item->pubDate)));
+                    //     $pnew->title = wire("sanitizer")->name(date('Y', strtotime($item->pubDate)));
+                    //     $pnew->val_int = wire("sanitizer")->name(date('Y', strtotime($item->pubDate)));
+                    //     $pnew->save();
+
+                    //     $p->season_select = $pnew;
+
+                    // }
+                    // else{
+                    //     $p->season_select = wire("pages")->get("parent=/data/seasons,title=".$season_number);
+                    // }
+                }
+                else{
+
+                    $season = wire("pages")->get("parent=/data/seasons,name=$season_number");
+
+                    if(!$season->id) {
+                        $pnew = new Page();
+                        $pnew->parent = '/data/seasons/';
+                        $pnew->template = 'data_entry';
+                        $pnew->name = wire("sanitizer")->name($season_number);
+                        $pnew->title = wire("sanitizer")->name($season_number);
+                        $pnew->val_int = wire("sanitizer")->name($season_number);
+                        $pnew->save();
+                    }
+                    $p->season_select = wire("pages")->get("parent=/data/seasons,title=$season_number");
+                }
+
+
+                if ($show == 'Showcase') {
+                    $p->episode_number = ' ';
+                }
+                else{
+                    $p->episode_number = $episode_number;
+                }
+
+
+                $p->addStatus(Page::statusUnpublished);
+                $p->save();
+
+                // $p->image_thumbnail->deleteAll();
+                if ($show != 'Red Panda Advetures') {
+                    $p->image_thumbnail = resolveimage($thumbnail['url']);
+                    $p->save();
+                }
+
+
+
+            }
+        }
+
+        if ($newPages>0) {
+            $this->message("New Episode Imported - {$p->title} | {$show} - Please check the imported information and publish when ready");
+
+            $this->session->redirect($this->config->urls->admin . "page/edit/?id={$p->id}", false);
+
+        }
+        else{
+            $this->message("Nothing to import for {$show}");
+        }
+    }
+}

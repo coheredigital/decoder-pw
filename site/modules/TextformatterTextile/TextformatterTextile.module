@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * ProcessWire Textile Textformatter
+ *
+ * ProcessWire 2.x 
+ * Copyright (C) 2012 by Ryan Cramer 
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ * 
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ *
+ * T E X T I L E
+ * Copyright (c) 2003-2004, Dean Allen <dean@textism.com>
+ * All rights reserved.
+ * Thanks to Carlo Zottmann <carlo@g-blog.net> for refactoring
+ * Textile's procedural code into a class framework
+ * Additions and fixes Copyright (c) 2006    Alex Shiels       http://thresholdstate.com/
+ * Additions and fixes Copyright (c) 2010    Stef Dawson       http://stefdawson.com/
+ * Additions and fixes Copyright (c) 2010-14 Netcarver         http://github.com/netcarver
+ * Additions and fixes Copyright (c) 2011    Jeff Soo          http://ipsedixit.net
+ * Additions and fixes Copyright (c) 2012    Robert Wetzlmayr  http://wetzlmayr.com/
+ *
+ */
+
+class TextformatterTextile extends Textformatter {
+
+    public static function getModuleInfo() {
+        return array(
+            'title' => 'Textile',
+            'version' => 355,
+            'summary' => "Textile text formatting from Textpattern by Dean Allen with additions by Alex Shiels. For use with trusted input only.",
+            'url' => "http://en.wikipedia.org/wiki/Textile_(markup_language)",
+            //'requires' => 'PHP>=5.3.0',  // Will add back at later date once the requires entry is in PW master
+        );
+    }
+
+    public function format(&$str) {
+        require_once($this->config->paths->TextformatterTextile . 'src/Parser.php');
+        require_once($this->config->paths->TextformatterTextile . 'src/DataBag.php');
+        require_once($this->config->paths->TextformatterTextile . 'src/Tag.php');
+        $textile = new \Netcarver\Textile\Parser('html5');
+        $str = $textile->TextileThis($str);
+    }
+}
