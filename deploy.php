@@ -95,13 +95,10 @@ task('files:push', function () {
 	upload("./site/assets/files", "{{deploy_path}}/shared/site/assets");
 });
 
-task('dl:index', function () {
-	download("{{deploy_path}}/index.php", "./index.php");
-});
-
-task('dl:wire', function () {
+task('pull:wire', function () {
 	download("{{deploy_path}}/wire", "./");
 });
-task('dl:modules', function () {
-	download("{{deploy_path}}/site/modules", "./site/");
+
+task('pull:assets', function () {
+	download("{{deploy_path}}/site/assets", "./site/");
 });
