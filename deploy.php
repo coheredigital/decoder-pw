@@ -29,7 +29,8 @@ set('runcloud', [
 // Shared files/dirs between deploys
 set('shared_files', []);
 set('shared_dirs', [
-	'site/assets'
+	'site/assets',
+	'wire',
 ]);
 
 // Writable dirs by web server
