@@ -89,7 +89,7 @@ task('db:sync', [
 //  files ===============================
 
 task('files:pull', function () {
-	download("{{deploy_path}}/site/assets/files/", "./site/assets/files");
+	download("{{deploy_path}}/site/assets/", "./site/assets/files");
 });
 
 task('files:push', function () {
