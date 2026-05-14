@@ -19,7 +19,7 @@ set('http_user', 'www-data');
 set('use_relative_symlink', true);
 set('use_atomic_symlink', true);
 set('writable_mode', 'chmod');
-set('repository', 'git@github.com:coheredigital/decoder_pw.git');
+set('repository', 'git@github.com:coheredigital/decoder-pw.git');
 
 set('runcloud', [
 	'key' => 'N7v3YvQLWKVR2Rl1trsJvvVjwHGzuHtJuBy6QWxNSiYS',
