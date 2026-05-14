@@ -18,7 +18,7 @@ $config->imageSizerOptions = array(
 );
 $config->sessionFingerprint = 0;
 
-$config->dbHost = '127.0.0.1';
+$config->dbHost = 'mariadb';
 $config->dbName = 'decoder_db';
 $config->dbUser = 'decoder_nkzvrou8a4';
 $config->dbPass = '2ff5e68cb5bc5ef5';
